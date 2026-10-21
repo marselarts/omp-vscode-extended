@@ -1,0 +1,255 @@
+export type ChatRole = "user" | "assistant" | "system";
+
+/** Handle returned by timer scheduling APIs (setTimeout/setInterval). */
+export type TimerHandle = ReturnType<typeof setTimeout>;
+
+export type ToolStatus = "running" | "done" | "error";
+
+export interface ToolFileRef {
+  path: string;
+  /** 1-based start line, when known (read offset / edit range). */
+  line?: number;
+  /** 1-based end line (inclusive), when known. */
+  endLine?: number;
+}
+
+export interface ToolCallPart {
+  kind: "tool";
+  id: string;
+  name: string;
+  status: ToolStatus;
+  inputPreview?: string;
+  outputPreview?: string;
+  /** Paths touched by edit/write/delete-style tools (best-effort). */
+  filePaths?: string[];
+  /** Path + optional line range for editor navigation. */
+  fileRefs?: ToolFileRef[];
+}
+
+export interface TextPart {
+  kind: "text";
+  text: string;
+}
+
+export interface ThinkingPart {
+  kind: "thinking";
+  text: string;
+  streaming?: boolean;
+  startedAt?: number;
+  endedAt?: number;
+  /** Best-effort thinking duration in ms (wall clock / omp ttft/duration). */
+  durationMs?: number;
+}
+
+export type MessagePart = TextPart | ThinkingPart | ToolCallPart;
+
+export interface ChatMessage {
+  id: string;
+  role: ChatRole;
+  parts: MessagePart[];
+  createdAt: number;
+  streaming?: boolean;
+  /** Waiting to send until the current turn finishes. */
+  queued?: boolean;
+  /** Attachments shown in the transcript (e.g. image previews). */
+  attachments?: Attachment[];
+  /** Agent runtime for this assistant turn (first part → end of turn). */
+  durationMs?: number;
+  /** Wall-clock end of the turn that settled this message. */
+  endedAt?: number;
+}
+
+export type AttachmentKind = "file" | "folder" | "image" | "selection" | "text" | "context";
+
+export interface Attachment {
+  id: string;
+  kind: AttachmentKind;
+  label: string;
+  /** Absolute filesystem path used for omp @mentions */
+  fsPath?: string;
+  /** Display / workspace-relative path */
+  path?: string;
+  language?: string;
+  /** Inline text for selections or pathless drops */
+  content?: string;
+  mimeType?: string;
+  /** Optional data URL for image thumbnails in the webview */
+  previewDataUrl?: string;
+  size?: number;
+}
+
+export interface SessionStatus {
+  state: "starting" | "ready" | "busy" | "error" | "stopped";
+  detail?: string;
+  /** Workspace epoch (ms) when the current turn started; unset when idle. */
+  turnStartedAt?: number;
+  /** Runtime (ms) of the last finished turn in this session. */
+  lastTurnMs?: number;
+}
+
+/** Session context window usage from omp get_state.contextUsage */
+export interface ContextUsage {
+  tokens: number;
+  contextWindow: number;
+  /** Percentage of the context window used (0-100). */
+  percent: number;
+}
+
+export interface ChatTabInfo {
+  id: string;
+  title: string;
+  busy: boolean;
+  status: SessionStatus["state"];
+}
+
+export interface SessionModelInfo {
+  id: string;
+  name: string;
+  provider?: string;
+  contextWindow?: number;
+}
+
+/** Workspace file / folder result for @-mention autocomplete */
+export interface FileSuggestItem {
+  path: string;
+  fsPath: string;
+  kind: "file" | "folder";
+  /** Optional short label override (e.g. "Current file") */
+  label?: string;
+  detail?: string;
+}
+
+/** Interactive question from omp `extension_ui_request` (select/confirm/input/editor). */
+export type UiQuestionMethod = "select" | "confirm" | "input" | "editor";
+
+export interface UiQuestion {
+  id: string;
+  method: UiQuestionMethod;
+  title?: string;
+  message?: string;
+  options?: string[];
+  placeholder?: string;
+  prefill?: string;
+  timeoutMs?: number;
+  createdAt: number;
+}
+
+export type HostToWebview =
+  | {
+      type: "ready";
+      status: SessionStatus;
+      messages: ChatMessage[];
+      attachments: Attachment[];
+      showThinking: boolean;
+      model?: string;
+      mode?: string;
+      displayName?: string;
+      contextUsage?: ContextUsage | null;
+      tabs?: ChatTabInfo[];
+      activeTabId?: string;
+      uiQuestion?: UiQuestion | null;
+    }
+  | { type: "status"; status: SessionStatus }
+  | { type: "messages"; messages: ChatMessage[] }
+  | { type: "attachments"; attachments: Attachment[] }
+  | { type: "error"; message: string }
+  | {
+      type: "config";
+      showThinking?: boolean;
+      model?: string;
+      mode?: string;
+      displayName?: string;
+      contextUsage?: ContextUsage | null;
+      tabs?: ChatTabInfo[];
+      activeTabId?: string;
+      uiQuestion?: UiQuestion | null;
+    }
+  | { type: "contextUsage"; contextUsage: ContextUsage | null; model?: string }
+  | { type: "tabs"; tabs: ChatTabInfo[]; activeTabId: string }
+  | { type: "fileResults"; requestId: number; files: FileSuggestItem[] }
+  | { type: "uiQuestion"; question: UiQuestion | null }
+  | { type: "composerPrefill"; text: string }
+  | { type: "inlineImage"; clientId?: string; attachment: Attachment };
+
+export type WebviewToHost =
+  | { type: "ready" }
+  | { type: "send"; text: string }
+  | { type: "stop" }
+  | { type: "newChat" }
+  | { type: "switchTab"; id: string }
+  | { type: "closeTab"; id: string }
+  | { type: "tabContextMenu"; id: string }
+  | { type: "restart" }
+  | { type: "history" }
+  | { type: "moreMenu" }
+  | { type: "pickModel" }
+  | { type: "pickMode" }
+  | { type: "showUsage" }
+  | { type: "attachMenu" }
+  | { type: "attachFiles" }
+  | { type: "attachFolder" }
+  | { type: "attachTerminal" }
+  | { type: "attachPaths"; paths: string[] }
+  | {
+      type: "attachImage";
+      name: string;
+      mimeType: string;
+      base64: string;
+      clientId?: string;
+    }
+  | {
+      type: "attachTextFile";
+      name: string;
+      content: string;
+      language?: string;
+    }
+  | { type: "removeAttachment"; id: string }
+  | { type: "recallQueued"; id: string; text?: string }
+  | { type: "removeQueued"; id: string; text?: string }
+  | { type: "copy"; text: string }
+  | { type: "insert"; text: string }
+  | { type: "openFile"; path: string; line?: number; endLine?: number }
+  | { type: "openExternal"; url: string }
+  | { type: "searchFiles"; query: string; requestId: number }
+  | { type: "runSlashCommand"; command: string }
+  | {
+      type: "answerUiQuestion";
+      id: string;
+      confirmed?: boolean;
+      value?: string;
+      cancelled?: boolean;
+    };
+
+export interface OmpRpcEvent {
+  type: string;
+  [key: string]: unknown;
+}
+
+export interface AssistantMessageEvent {
+  type: string;
+  delta?: string;
+  contentIndex?: number;
+  toolCallId?: string;
+  toolName?: string;
+  args?: unknown;
+  result?: unknown;
+  error?: unknown;
+}
+
+export interface OmpClientOptions {
+  ompPath: string;
+  cwd: string;
+  model?: string;
+  thinking?: string;
+  approvalMode?: string;
+  autoApprove?: boolean;
+  continueLastSession?: boolean;
+  /** Resume a specific omp session id (takes precedence over --continue). */
+  resumeSessionId?: string;
+  extraArgs?: string[];
+  /**
+   * Absolute path to the omp extension that auto-generates session titles in
+   * RPC mode. Omit / undefined to leave title generation disabled.
+   */
+  titleExtensionPath?: string;
+}

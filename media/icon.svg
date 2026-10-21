@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <!-- Monochrome π for VS Code activity bar tinting -->
+  <path
+    d="M5 7.75h14M8.25 7.75v9.1c0 1.05-.42 1.6-1.35 1.6-.4 0-.78-.1-1.1-.28M15.75 7.75v9.1c0 1.05.42 1.6 1.35 1.6.4 0 .78-.1 1.1-.28"
+    stroke="#ffffff"
+    stroke-width="2.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

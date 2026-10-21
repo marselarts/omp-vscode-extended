@@ -88,6 +88,12 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   context.subscriptions.push(
+    vscode.commands.registerCommand("ompTimer.askAboutSession", async () => {
+      await provider.openAskChat();
+    }),
+  );
+
+  context.subscriptions.push(
     vscode.commands.registerCommand("ompTimer.newChat", async () => {
       await provider.newChat();
     }),

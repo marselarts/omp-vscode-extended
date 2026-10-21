@@ -148,8 +148,10 @@ export type HostToWebview =
       tabs?: ChatTabInfo[];
       activeTabId?: string;
       uiQuestion?: UiQuestion | null;
+      ask?: AskChatState;
     }
   | { type: "status"; status: SessionStatus }
+  | { type: "ask"; ask: AskChatState }
   | { type: "messages"; messages: ChatMessage[] }
   | { type: "attachments"; attachments: Attachment[] }
   | { type: "error"; message: string }
@@ -212,6 +214,10 @@ export type WebviewToHost =
   | { type: "openExternal"; url: string }
   | { type: "searchFiles"; query: string; requestId: number }
   | { type: "runSlashCommand"; command: string }
+  | { type: "openAsk" }
+  | { type: "closeAsk" }
+  | { type: "ask"; question: string }
+  | { type: "stopAsk" }
   | {
       type: "answerUiQuestion";
       id: string;
@@ -252,4 +258,28 @@ export interface OmpClientOptions {
    * RPC mode. Omit / undefined to leave title generation disabled.
    */
   titleExtensionPath?: string;
+}
+
+/** One message in a parallel "ask about this session" chat. */
+export interface AskMessage {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+  createdAt: number;
+  streaming?: boolean;
+  error?: boolean;
+}
+
+/**
+ * Parallel read-only chat about the active session. Runs in its own omp process,
+ * so the session's turn is never interrupted.
+ */
+export interface AskChatState {
+  open: boolean;
+  /** Session being asked about; reset when the active tab changes. */
+  sessionId?: string;
+  /** Tab title shown in the dialog header. */
+  title: string;
+  busy: boolean;
+  messages: AskMessage[];
 }

@@ -2040,3 +2040,137 @@ button {
   color: var(--bg, #111);
   border-color: transparent;
 }
+
+/* ---- parallel "ask about this session" chat ---- */
+.ask-dialog {
+  position: absolute;
+  inset: 0;
+  z-index: 38;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 10px 10px 0;
+  background: color-mix(in srgb, #000 38%, transparent);
+}
+.ask-dialog[hidden] {
+  display: none !important;
+}
+.ask-dialog-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 100%;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background-color: var(--bg);
+  background-image: linear-gradient(
+    color-mix(in srgb, var(--text) 4%, transparent),
+    color-mix(in srgb, var(--text) 4%, transparent)
+  );
+  box-shadow: 0 18px 40px color-mix(in srgb, #000 45%, transparent);
+}
+.ask-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.ask-dialog-heading {
+  min-width: 0;
+}
+.ask-dialog-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ask-dialog-title {
+  margin-top: 2px;
+  font-size: 13.5px;
+  font-weight: 650;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ask-dialog-messages {
+  flex: 1 1 auto;
+  min-height: 120px;
+  overflow-y: auto;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ask-empty {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.ask-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ask-role {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ask-text {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text);
+  word-break: break-word;
+}
+.ask-text p {
+  margin: 0 0 6px;
+}
+.ask-text p:last-child {
+  margin-bottom: 0;
+}
+.ask-msg.user .ask-text {
+  border-left: 2px solid color-mix(in srgb, var(--text) 40%, transparent);
+  padding-left: 8px;
+}
+.ask-msg.error .ask-role,
+.ask-msg.error .ask-text {
+  color: var(--danger, #e5534b);
+}
+.ask-dialog-composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--border);
+}
+.ask-dialog-input {
+  flex: 1 1 auto;
+  resize: none;
+  min-height: 38px;
+  max-height: 140px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text) 3%, transparent);
+  color: var(--text);
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.4;
+  outline: none;
+}
+.ask-dialog-input:focus {
+  border-color: color-mix(in srgb, var(--text) 35%, var(--border));
+}
+.ask-dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

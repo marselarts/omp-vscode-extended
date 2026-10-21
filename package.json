@@ -117,10 +117,20 @@
         "command": "ompTimer.showErrorLog",
         "title": "OMP Timer: Show Error Log",
         "icon": "$(output)"
+      },
+      {
+        "command": "ompTimer.askAboutSession",
+        "title": "OMP Timer: Ask About This Session",
+        "icon": "$(comment-discussion)"
       }
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "ompTimer.askAboutSession",
+          "when": "view == ompTimer.sidebar",
+          "group": "navigation@0"
+        },
         {
           "command": "ompTimer.newChat",
           "when": "view == ompTimer.sidebar",
@@ -253,6 +263,11 @@
           "type": "boolean",
           "default": true,
           "description": "Log edit/write/delete tool calls and touched file paths to the \"OMP File Touches\" output channel."
+        },
+        "ompTimer.askModel": {
+          "type": "string",
+          "default": "",
+          "description": "Model for the parallel \"Ask about this session\" chat (fuzzy match). Empty = same as ompTimer.model / the session's default. The ask runs in its own omp process and never delays the session."
         }
       }
     },

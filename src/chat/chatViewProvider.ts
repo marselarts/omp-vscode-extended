@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { AttachmentService } from "../omp/attachmentService";
+import { AskChat } from "../omp/askChat";
 import { logError, logWarn, showErrorLog } from "../omp/errorLog";
 import { pickMode, pickModel } from "../omp/modelCatalog";
 import { formatSessionWhen, listOmpSessions, type OmpHistorySession } from "../omp/sessionCatalog";
@@ -16,6 +17,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
   private mode: string = "Agent";
   private displayName: string = "";
   private readonly attachments: AttachmentService;
+  private readonly ask: AskChat;
 
   constructor(
     private readonly extensionUri: vscode.Uri,
@@ -23,12 +25,34 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     storageUri: vscode.Uri,
   ) {
     this.attachments = new AttachmentService(sessions, storageUri);
+    this.ask = new AskChat(sessions);
+    this.disposables.push(
+      this.ask.onDidChange(() => {
+        this.post({ type: "ask", ask: this.ask.getState() });
+      }),
+      this.ask,
+    );
     this.displayName = this.resolveDisplayName();
     this.mode =
       vscode.workspace.getConfiguration("ompTimer").get<string>("mode", "Agent") || "Agent";
 
+    // First update of a new turn only refreshes the ask dialog header: title sync and
+    // new session ids arrive over the following events. Resetting on any later one
+    // drops follow-up Q&A at arbitrary moments.
+    let askSyncArmed = true;
     this.disposables.push(
       sessions.onDidChange(() => {
+        const askSessionId = this.ask.getState().sessionId;
+        if (sessions.getSessionIdForTab(sessions.getActiveId()) !== askSessionId) {
+          if (askSyncArmed) {
+            askSyncArmed = false;
+            void this.ask.refresh();
+          } else {
+            this.ask.reset();
+          }
+        } else {
+          askSyncArmed = true;
+        }
         this.postState();
       }),
     );
@@ -92,6 +116,11 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
   async newChat(): Promise<void> {
     await this.sessions.newChat();
     this.postState();
+  }
+
+  /** Open the parallel "ask about this session" dialog (also used by the title button). */
+  async openAskChat(): Promise<void> {
+    await this.ask.show();
   }
 
   stop(): void {
@@ -286,6 +315,18 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       case "runSlashCommand":
         await this.runSlashCommand(msg.command);
         break;
+      case "openAsk":
+        await this.ask.show();
+        break;
+      case "closeAsk":
+        this.ask.hide();
+        break;
+      case "ask":
+        await this.ask.ask(msg.question);
+        break;
+      case "stopAsk":
+        this.ask.stop();
+        break;
       case "answerUiQuestion":
         this.sessions.answerUiQuestion(msg.id, {
           confirmed: msg.confirmed,
@@ -406,6 +447,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       tabs: this.sessions.getTabs(),
       activeTabId: this.sessions.getActiveId(),
       uiQuestion: this.sessions.getUiQuestion(),
+      ask: this.ask.getState(),
     });
   }
 
@@ -444,6 +486,11 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         <span id="trafficLight" class="traffic-light" title="Idle"></span>
         <span id="turnClock" class="header-clock" hidden></span>
         <span id="statusDot" class="status-dot" title="status"></span>
+        <button id="askBtn" class="icon-btn tab-action" title="Ask about this session (runs in parallel)" aria-label="Ask about this session">
+          <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path fill="currentColor" d="M2.5 2A1.5 1.5 0 0 0 1 3.5v7A1.5 1.5 0 0 0 2.5 12h1v2.2c0 .35.4.55.68.34L7.6 12h5.9A1.5 1.5 0 0 0 15 10.5v-7A1.5 1.5 0 0 0 13.5 2h-11Zm2.25 3.25a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5H5.5a.75.75 0 0 1-.75-.75Zm0 2.5a.75.75 0 0 1 .75-.75h4a.75.75 0 0 1 0 1.5H5.5a.75.75 0 0 1-.75-.75Z"/>
+          </svg>
+        </button>
         <button id="newChatBtn" class="icon-btn tab-action" title="New session" aria-label="New session">
           <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path fill="currentColor" d="M8.75 1.75a.75.75 0 0 0-1.5 0v5.5h-5.5a.75.75 0 0 0 0 1.5h5.5v5.5a.75.75 0 0 0 1.5 0v-5.5h5.5a.75.75 0 0 0 0-1.5h-5.5v-5.5Z"/>
@@ -499,6 +546,26 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         </button>
       </div>
     </section>
+
+    <div id="askDialog" class="ask-dialog" hidden>
+      <div class="ask-dialog-card" role="dialog" aria-modal="true" aria-labelledby="askDialogTitle">
+        <div class="ask-dialog-header">
+          <div class="ask-dialog-heading">
+            <div class="ask-dialog-kicker">Parallel chat · read-only · session keeps running</div>
+            <div id="askDialogTitle" class="ask-dialog-title">Ask about this session</div>
+          </div>
+          <button id="askCloseBtn" class="icon-btn" type="button" title="Close" aria-label="Close">×</button>
+        </div>
+        <div id="askMessages" class="ask-dialog-messages"></div>
+        <div class="ask-dialog-composer">
+          <textarea id="askInput" class="ask-dialog-input" rows="2" placeholder="What is the agent doing? Which files has it changed?"></textarea>
+          <div class="ask-dialog-actions">
+            <button id="askStopBtn" class="secondary" type="button" hidden>■</button>
+            <button id="askSendBtn" class="primary" type="button" title="Ask">↑</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div id="imagePreview" class="image-preview" hidden>
       <button type="button" class="image-preview-backdrop" data-action="close-image-preview" aria-label="Close preview"></button>
@@ -1076,9 +1143,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
       case "tabs":
         await this.showTabPicker();
         break;
+      case "ask":
+        await this.openAskChat();
+        break;
       case "help":
         vscode.window.showInformationMessage(
-          "Commands: /new /stop /restart /model /mode /attach /folder /terminal /usage /history /help — Files/folders: type @ to mention inline; @terminal attaches CMD output",
+          "Commands: /new /stop /restart /model /mode /attach /folder /terminal /usage /history /ask /help — Files/folders: type @ to mention inline; @terminal attaches CMD output",
         );
         break;
       default:

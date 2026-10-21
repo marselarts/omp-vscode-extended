@@ -8,6 +8,12 @@ Fork of [Chakyiu/omp-vscode](https://github.com/Chakyiu/omp-vscode) with **agent
 
 ## Features
 
+- **Ask about this session (parallel chat)**
+  - 💬 in the view title (or `/ask`) opens a read-only chat *about* the active session
+  - Runs in its own `omp --mode rpc` process fed the session transcript — the agent's turn is never interrupted, and nothing it answers reaches the agent
+  - Answers appear in a dialog above the composer; follow-up questions keep the earlier Q&A as context
+  - Not a tool call, so it works while the agent is busy and never blocks the live session
+
 - **Agent runtime timer**
   - Live `m:ss` readout in the chat tab strip while a turn runs (`0:07`, `1:23`, `12:05`), yellow-tinted
   - Settled runtime under every finished assistant reply (`7.4s`, `1m 04s`)
@@ -54,7 +60,7 @@ Then press **F5** (`Run Extension`) to open an Extension Development Host.
 3. Optional:
    - Right-click in the editor → **OMP: Attach Current File**
    - Select code → **OMP: Send Selection to Chat**
-4. Use the view title buttons for **New Chat**, **Stop**, or **Restart Session**
+4. Use the view title buttons for **New Chat**, **Ask about this session**, **Stop**, or **Restart Session**
 
 ### Keyboard shortcuts
 
@@ -74,6 +80,7 @@ Then press **F5** (`Run Extension`) to open an Extension Development Host.
 | `ompTimer.autoApprove` | Pass `--auto-approve` |
 | `ompTimer.continueLastSession` | Restore all open omp chat tabs/sessions on start (default on; survives VS Code kills) |
 | `ompTimer.autoTitle` | Let omp generate a short session title after the first message (default on; restart chats when toggling) |
+| `ompTimer.askModel` | Model for the parallel **Ask about this session** chat (fuzzy match; empty = `ompTimer.model` / omp default) |
 | `ompTimer.extraArgs` | Extra CLI args |
 | `ompTimer.showThinking` | Show/hide thinking blocks in UI |
 | `ompTimer.logFileTouches` | Log edit/write/delete touched paths to **OMP File Touches** output channel |
@@ -90,6 +97,15 @@ VS Code extension host
                  └─ spawn: omp --mode rpc --cwd <workspace>
                       stdin/stdout: newline-delimited JSON
 ```
+
+Ask-about-session transport:
+
+```text
+AskChat ──transcript──> spawn: omp --mode rpc --no-session --no-tools
+                         prompt (after ready) → text deltas → agent_end
+```
+
+The live session's process is never prompted for an ask, so its turn and queue keep running.
 
 Prompt command:
 

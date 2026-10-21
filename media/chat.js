@@ -30,6 +30,14 @@
   const modelLabel = document.getElementById("modelLabel");
   const modeLabel = document.getElementById("modeLabel");
   const greetingTitle = document.getElementById("greetingTitle");
+  const askBtn = document.getElementById("askBtn");
+  const askDialogEl = document.getElementById("askDialog");
+  const askDialogTitleEl = document.getElementById("askDialogTitle");
+  const askMessagesEl = document.getElementById("askMessages");
+  const askInputEl = document.getElementById("askInput");
+  const askSendBtn = document.getElementById("askSendBtn");
+  const askStopBtn = document.getElementById("askStopBtn");
+  const askCloseBtn = document.getElementById("askCloseBtn");
   const usageBtn = document.getElementById("usageBtn");
   const usageLabel = document.getElementById("usageLabel");
   const usageProgress = document.getElementById("usageProgress");
@@ -59,6 +67,7 @@
     tabs: [],
     activeTabId: "",
     uiQuestion: null,
+    ask: { open: false, sessionId: undefined, title: "", busy: false, messages: [] },
   };
 
   let dragDepth = 0;
@@ -92,6 +101,7 @@
     { id: "terminal", label: "/terminal", detail: "Attach terminal / CMD output" },
     { id: "usage", label: "/usage", detail: "Show context usage" },
     { id: "history", label: "/history", detail: "Switch chat tabs" },
+    { id: "ask", label: "/ask", detail: "Ask about this session in parallel" },
     { id: "help", label: "/help", detail: "List available commands" },
   ];
 
@@ -1925,6 +1935,7 @@
       sendBtn.classList.toggle("queue", busy);
       setComposerEnabled(interactable);
       [
+        askBtn,
         newChatBtn,
         historyBtn,
         moreBtn,
@@ -2021,6 +2032,7 @@
       renderAttachments();
       renderActiveQuestion();
       renderUiQuestion();
+      renderAsk();
       syncThinkingTimer();
     } catch (err) {
       console.error("OMP Chat render failed", err);
@@ -2050,6 +2062,96 @@
       return { id: msg.id, text: text, attachments: attachments };
     }
     return null;
+  }
+
+  let askSignature = "";
+
+  /** Parallel read-only chat about this session; the session itself keeps running. */
+  function renderAsk() {
+    if (!askDialogEl) return;
+    const ask = state.ask || { open: false, messages: [] };
+    askDialogEl.hidden = !ask.open;
+    if (!ask.open) {
+      askSignature = "";
+      return;
+    }
+    const signature = [
+      ask.sessionId || "",
+      ask.title || "",
+      ask.busy ? "1" : "0",
+      (ask.messages || [])
+        .map(function (m) {
+          return (
+            m.id +
+            ":" +
+            (m.streaming ? "s" : "d") +
+            ":" +
+            (m.text || "").length +
+            ":" +
+            (m.error ? "e" : "")
+          );
+        })
+        .join("|"),
+    ].join("\0");
+    if (signature === askSignature) {
+      // Streamed text grows in place; only the body needs rewriting.
+      patchAskText(ask);
+      return;
+    }
+    askSignature = signature;
+
+    if (askDialogTitleEl) {
+      askDialogTitleEl.textContent = ask.title
+        ? "Ask about \u201c" + ask.title + "\u201d"
+        : "Ask about this session";
+    }
+    const body = (ask.messages || [])
+      .map(function (m) {
+        const text = m.streaming && !m.text ? "…" : renderMarkdownish(m.text || "");
+        return (
+          '<div class="ask-msg ' +
+          (m.role === "user" ? "user" : "assistant") +
+          (m.error ? " error" : "") +
+          '" data-id="' +
+          escapeHtml(m.id) +
+          '">' +
+          '<div class="ask-role">' +
+          (m.role === "user" ? "You" : m.error ? "Error" : "Answer") +
+          "</div>" +
+          '<div class="ask-text">' +
+          text +
+          "</div>" +
+          "</div>"
+        );
+      })
+      .join("");
+    askMessagesEl.innerHTML =
+      body ||
+      '<div class="ask-empty">Ask anything about what the agent is doing right now. This chat runs in its own omp process: it cannot edit files or change the session, and the agent is never interrupted.</div>';
+    askMessagesEl.scrollTop = askMessagesEl.scrollHeight;
+    if (askSendBtn) askSendBtn.disabled = Boolean(ask.busy);
+    if (askStopBtn) askStopBtn.hidden = !ask.busy;
+    if (askInputEl) askInputEl.disabled = false;
+  }
+
+  function patchAskText(ask) {
+    const nodes = askMessagesEl.querySelectorAll(".ask-msg");
+    (ask.messages || []).forEach(function (m, i) {
+      const node = nodes[i];
+      if (!node) return;
+      const textEl = node.querySelector(".ask-text");
+      const next = m.streaming && !m.text ? "…" : renderMarkdownish(m.text || "");
+      if (textEl && textEl.innerHTML !== next) textEl.innerHTML = next;
+    });
+    askMessagesEl.scrollTop = askMessagesEl.scrollHeight;
+  }
+
+  function sendAsk() {
+    if (!askInputEl) return;
+    const question = askInputEl.value.trim();
+    if (!question) return;
+    askInputEl.value = "";
+    vscode.postMessage({ type: "ask", question: question });
   }
 
   let activeQuestionSignature = "";
@@ -3137,6 +3239,39 @@
     vscode.postMessage({ type: "pickMode" });
   });
 
+  if (askBtn) {
+    askBtn.addEventListener("click", function () {
+      vscode.postMessage({ type: "openAsk" });
+    });
+  }
+  if (askCloseBtn) {
+    askCloseBtn.addEventListener("click", function () {
+      vscode.postMessage({ type: "closeAsk" });
+    });
+  }
+  if (askSendBtn) askSendBtn.addEventListener("click", sendAsk);
+  if (askStopBtn) {
+    askStopBtn.addEventListener("click", function () {
+      vscode.postMessage({ type: "stopAsk" });
+    });
+  }
+  if (askInputEl) {
+    askInputEl.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendAsk();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        vscode.postMessage({ type: "closeAsk" });
+      }
+    });
+  }
+  askDialogEl.addEventListener("click", function (e) {
+    if (e.target === askDialogEl) {
+      vscode.postMessage({ type: "closeAsk" });
+    }
+  });
+
   inputEl.addEventListener("keydown", function (e) {
     if (suggest.open && suggest.items.length) {
       if (e.key === "ArrowDown") {
@@ -3583,6 +3718,7 @@
         tabs: msg.tabs || [],
         activeTabId: nextTabId,
         uiQuestion: msg.uiQuestion !== undefined ? msg.uiQuestion : null,
+        ask: msg.ask || state.ask,
       };
       settleAgentClock();
       render();
@@ -3636,7 +3772,17 @@
       if (msg.tabs) state.tabs = msg.tabs;
       if (msg.activeTabId) state.activeTabId = msg.activeTabId;
       if (msg.uiQuestion !== undefined) state.uiQuestion = msg.uiQuestion;
+      if (msg.ask) state.ask = msg.ask;
       render();
+      return;
+    }
+    if (msg.type === "ask") {
+      const wasOpen = Boolean(state.ask && state.ask.open);
+      state.ask = msg.ask || state.ask;
+      renderAsk();
+      if (!wasOpen && state.ask && state.ask.open && askInputEl) {
+        askInputEl.focus();
+      }
       return;
     }
     if (msg.type === "uiQuestion") {

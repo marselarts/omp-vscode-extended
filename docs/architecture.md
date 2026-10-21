@@ -84,3 +84,20 @@ Scroll position is preserved across full re-renders unless the user is near the 
 - `abort()` sets a 500 ms fallback timer so a missing `agent_end` cannot leave the session busy.
 - `markTurnComplete()` tolerates duplicate settles (returns early once not busy).
 - `error`/`prompt_error` push a `system` message and set `status.state = "error"`.
+
+## Parallel ask chat
+
+`AskChat` (`src/omp/askChat.ts`) answers questions *about* the active session without
+touching its process: omp rejects a second `prompt` while an agent is processing, so the
+ask runs in its own throwaway process.
+
+| Step | Where |
+|---|---|
+| Open / close / stop | `ChatViewProvider` ← `openAsk`, `closeAsk`, `stopAsk`; view-title `ompTimer.askAboutSession`, `/ask` |
+| State owner | `AskChat` (`AskChatState` → webview `ask` message); `open`/`sessionId`/`busy`/`messages` |
+| Transcript | `TabManager.getMessagesForTab(tabId)` → `transcriptForAsk` (tail-clipped, streaming thinking skipped) |
+| Model call | `askInSideSession` (`src/omp/sideChat.ts`): `omp --mode rpc --no-session --no-tools --no-extensions`, prompt sent **after `ready`**, text deltas collected until `agent_end` |
+| UI | `#askDialog` in the webview (`media/chat.js` `renderAsk`); the live transcript and composer are untouched |
+
+Session switch or restart resets the ask chat (`ChatViewProvider` compares the active tab's
+session id). The live session's status, timer, and queue are never modified by an ask.

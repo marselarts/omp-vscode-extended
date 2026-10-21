@@ -7,7 +7,7 @@ let channel: vscode.OutputChannel | undefined;
 const started = new Set<string>();
 
 function isEnabled(): boolean {
-  return vscode.workspace.getConfiguration("ompTimer").get<boolean>("logFileTouches", true);
+  return vscode.workspace.getConfiguration("ompChatExt").get<boolean>("logFileTouches", true);
 }
 
 function getChannel(): vscode.OutputChannel {

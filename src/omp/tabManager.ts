@@ -64,7 +64,7 @@ export class TabManager {
     private readonly openSessionsStore?: OpenSessionsStore,
   ) {
     const continueEnabled = vscode.workspace
-      .getConfiguration("ompTimer")
+      .getConfiguration("ompChatExt")
       .get<boolean>("continueLastSession", true);
     const saved = continueEnabled ? this.openSessionsStore?.get() : undefined;
     const sessionIds = saved?.sessionIds?.filter((id) => Boolean(id?.trim())) ?? [];

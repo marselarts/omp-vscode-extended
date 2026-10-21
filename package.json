@@ -1,13 +1,13 @@
 {
-  "name": "omp-chat-timer",
-  "displayName": "OMP Chat Timer",
+  "name": "omp-chat-extended",
+  "displayName": "OMP Chat Extended",
   "description": "Copilot/Cursor-style chat sidebar for OMP (omp) with agent runtime timer",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Chakyiu/omp-vscode"
+    "url": "https://github.com/marselarts/omp-vscode-extended"
   },
   "version": "0.1.0",
-  "publisher": "ChakyiuLI",
+  "publisher": "marselarts",
   "license": "MIT",
   "engines": {
     "vscode": "^1.90.0"
@@ -25,171 +25,171 @@
     "coding-agent"
   ],
   "activationEvents": [
-    "onView:ompTimer.sidebar",
-    "onCommand:ompTimer.open",
-    "onCommand:ompTimer.newChat",
-    "onCommand:ompTimer.sendSelection",
-    "onCommand:ompTimer.attachFiles",
-    "onCommand:ompTimer.attachFolder",
-    "onCommand:ompTimer.attachMenu",
-    "onCommand:ompTimer.attachExplorer",
-    "onCommand:ompTimer.attachTerminal"
+    "onView:ompChatExt.sidebar",
+    "onCommand:ompChatExt.open",
+    "onCommand:ompChatExt.newChat",
+    "onCommand:ompChatExt.sendSelection",
+    "onCommand:ompChatExt.attachFiles",
+    "onCommand:ompChatExt.attachFolder",
+    "onCommand:ompChatExt.attachMenu",
+    "onCommand:ompChatExt.attachExplorer",
+    "onCommand:ompChatExt.attachTerminal"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "ompTimer",
+          "id": "ompChatExt",
           "title": "OMP",
           "icon": "media/icon.svg"
         }
       ]
     },
     "views": {
-      "ompTimer": [
+      "ompChatExt": [
         {
           "type": "webview",
-          "id": "ompTimer.sidebar",
+          "id": "ompChatExt.sidebar",
           "name": "Chat"
         }
       ]
     },
     "commands": [
       {
-        "command": "ompTimer.open",
-        "title": "OMP Timer: Open Chat",
+        "command": "ompChatExt.open",
+        "title": "OMP Chat Extended: Open Chat",
         "icon": "$(comment-discussion)"
       },
       {
-        "command": "ompTimer.newChat",
-        "title": "OMP Timer: New Chat",
+        "command": "ompChatExt.newChat",
+        "title": "OMP Chat Extended: New Chat",
         "icon": "$(add)"
       },
       {
-        "command": "ompTimer.stop",
-        "title": "OMP Timer: Stop Generation",
+        "command": "ompChatExt.stop",
+        "title": "OMP Chat Extended: Stop Generation",
         "icon": "$(debug-stop)"
       },
       {
-        "command": "ompTimer.sendSelection",
-        "title": "OMP Timer: Send Selection to Chat"
+        "command": "ompChatExt.sendSelection",
+        "title": "OMP Chat Extended: Send Selection to Chat"
       },
       {
-        "command": "ompTimer.attachCurrentFile",
-        "title": "OMP Timer: Attach Current File"
+        "command": "ompChatExt.attachCurrentFile",
+        "title": "OMP Chat Extended: Attach Current File"
       },
       {
-        "command": "ompTimer.restartSession",
-        "title": "OMP Timer: Restart Session"
+        "command": "ompChatExt.restartSession",
+        "title": "OMP Chat Extended: Restart Session"
       },
       {
-        "command": "ompTimer.attachFiles",
-        "title": "OMP Timer: Attach Files",
+        "command": "ompChatExt.attachFiles",
+        "title": "OMP Chat Extended: Attach Files",
         "icon": "$(attach)"
       },
       {
-        "command": "ompTimer.attachFolder",
-        "title": "OMP Timer: Attach Folder",
+        "command": "ompChatExt.attachFolder",
+        "title": "OMP Chat Extended: Attach Folder",
         "icon": "$(folder)"
       },
       {
-        "command": "ompTimer.attachMenu",
-        "title": "OMP Timer: Attach…",
+        "command": "ompChatExt.attachMenu",
+        "title": "OMP Chat Extended: Attach…",
         "icon": "$(attach)"
       },
       {
-        "command": "ompTimer.attachExplorer",
-        "title": "OMP Timer: Attach to Chat",
+        "command": "ompChatExt.attachExplorer",
+        "title": "OMP Chat Extended: Attach to Chat",
         "icon": "$(attach)"
       },
       {
-        "command": "ompTimer.attachTerminal",
-        "title": "OMP Timer: Attach Terminal Output",
+        "command": "ompChatExt.attachTerminal",
+        "title": "OMP Chat Extended: Attach Terminal Output",
         "icon": "$(terminal)"
       },
       {
-        "command": "ompTimer.showToolLog",
-        "title": "OMP Timer: Show File Touch Log",
+        "command": "ompChatExt.showToolLog",
+        "title": "OMP Chat Extended: Show File Touch Log",
         "icon": "$(output)"
       },
       {
-        "command": "ompTimer.showErrorLog",
-        "title": "OMP Timer: Show Error Log",
+        "command": "ompChatExt.showErrorLog",
+        "title": "OMP Chat Extended: Show Error Log",
         "icon": "$(output)"
       },
       {
-        "command": "ompTimer.askAboutSession",
-        "title": "OMP Timer: Ask About This Session",
+        "command": "ompChatExt.askAboutSession",
+        "title": "OMP Chat Extended: Ask About This Session",
         "icon": "$(comment-discussion)"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "ompTimer.askAboutSession",
-          "when": "view == ompTimer.sidebar",
+          "command": "ompChatExt.askAboutSession",
+          "when": "view == ompChatExt.sidebar",
           "group": "navigation@0"
         },
         {
-          "command": "ompTimer.newChat",
-          "when": "view == ompTimer.sidebar",
+          "command": "ompChatExt.newChat",
+          "when": "view == ompChatExt.sidebar",
           "group": "navigation@1"
         },
         {
-          "command": "ompTimer.stop",
-          "when": "view == ompTimer.sidebar",
+          "command": "ompChatExt.stop",
+          "when": "view == ompChatExt.sidebar",
           "group": "navigation@2"
         },
         {
-          "command": "ompTimer.restartSession",
-          "when": "view == ompTimer.sidebar",
+          "command": "ompChatExt.restartSession",
+          "when": "view == ompChatExt.sidebar",
           "group": "navigation@3"
         },
         {
-          "command": "ompTimer.attachMenu",
-          "when": "view == ompTimer.sidebar",
+          "command": "ompChatExt.attachMenu",
+          "when": "view == ompChatExt.sidebar",
           "group": "navigation@0"
         }
       ],
       "editor/context": [
         {
-          "command": "ompTimer.sendSelection",
+          "command": "ompChatExt.sendSelection",
           "when": "editorHasSelection",
-          "group": "ompTimer@1"
+          "group": "ompChatExt@1"
         },
         {
-          "command": "ompTimer.attachCurrentFile",
-          "group": "ompTimer@2"
+          "command": "ompChatExt.attachCurrentFile",
+          "group": "ompChatExt@2"
         }
       ],
       "explorer/context": [
         {
-          "command": "ompTimer.attachExplorer",
-          "group": "ompTimer@1"
+          "command": "ompChatExt.attachExplorer",
+          "group": "ompChatExt@1"
         }
       ],
       "terminal/context": [
         {
-          "command": "ompTimer.attachTerminal",
-          "group": "ompTimer@1"
+          "command": "ompChatExt.attachTerminal",
+          "group": "ompChatExt@1"
         }
       ]
     },
     "configuration": {
-      "title": "OMP Chat Timer",
+      "title": "OMP Chat Extended",
       "properties": {
-        "ompTimer.ompPath": {
+        "ompChatExt.ompPath": {
           "type": "string",
           "default": "omp",
           "description": "Path to the omp executable."
         },
-        "ompTimer.model": {
+        "ompChatExt.model": {
           "type": "string",
           "default": "",
           "description": "Optional model override (fuzzy match, e.g. opus, gpt-5.2)."
         },
-        "ompTimer.thinking": {
+        "ompChatExt.thinking": {
           "type": "string",
           "enum": [
             "",
@@ -205,7 +205,7 @@
           "default": "",
           "description": "Optional thinking level passed to omp."
         },
-        "ompTimer.approvalMode": {
+        "ompChatExt.approvalMode": {
           "type": "string",
           "enum": [
             "",
@@ -216,22 +216,22 @@
           "default": "",
           "description": "Optional tools.approvalMode override for this session."
         },
-        "ompTimer.autoApprove": {
+        "ompChatExt.autoApprove": {
           "type": "boolean",
           "default": false,
           "description": "Pass --auto-approve to omp (skip approval prompts)."
         },
-        "ompTimer.continueLastSession": {
+        "ompChatExt.continueLastSession": {
           "type": "boolean",
           "default": true,
           "description": "Restore all open omp chat tabs/sessions when the chat bridge starts (survives VS Code restarts/kills). Disable to always start a blank session."
         },
-        "ompTimer.autoTitle": {
+        "ompChatExt.autoTitle": {
           "type": "boolean",
           "default": true,
           "description": "Let omp generate a short session title after the first message (uses the tiny/smol title model). Shows on chat tabs and in history. Changing this offers a restart so open chats pick it up."
         },
-        "ompTimer.extraArgs": {
+        "ompChatExt.extraArgs": {
           "type": "array",
           "items": {
             "type": "string"
@@ -239,7 +239,7 @@
           "default": [],
           "description": "Extra CLI args appended when spawning omp --mode rpc."
         },
-        "ompTimer.mode": {
+        "ompChatExt.mode": {
           "type": "string",
           "enum": [
             "Agent",
@@ -249,36 +249,36 @@
           "default": "Agent",
           "description": "Chat mode shown in the Cursor-style composer."
         },
-        "ompTimer.displayName": {
+        "ompChatExt.displayName": {
           "type": "string",
           "default": "",
           "description": "Optional name used in the greeting (e.g. How can I help you, Alex?)."
         },
-        "ompTimer.showThinking": {
+        "ompChatExt.showThinking": {
           "type": "boolean",
           "default": true,
           "description": "Show model thinking blocks in the chat UI."
         },
-        "ompTimer.logFileTouches": {
+        "ompChatExt.logFileTouches": {
           "type": "boolean",
           "default": true,
           "description": "Log edit/write/delete tool calls and touched file paths to the \"OMP File Touches\" output channel."
         },
-        "ompTimer.askModel": {
+        "ompChatExt.askModel": {
           "type": "string",
           "default": "",
-          "description": "Model for the parallel \"Ask about this session\" chat (fuzzy match). Empty = same as ompTimer.model / the session's default. The ask runs in its own omp process and never delays the session."
+          "description": "Model for the parallel \"Ask about this session\" chat (fuzzy match). Empty = same as ompChatExt.model / the session's default. The ask runs in its own omp process and never delays the session."
         }
       }
     },
     "keybindings": [
       {
-        "command": "ompTimer.open",
+        "command": "ompChatExt.open",
         "key": "ctrl+shift+;",
         "mac": "cmd+shift+;"
       },
       {
-        "command": "ompTimer.sendSelection",
+        "command": "ompChatExt.sendSelection",
         "key": "ctrl+shift+'",
         "mac": "cmd+shift+'",
         "when": "editorTextFocus && editorHasSelection"

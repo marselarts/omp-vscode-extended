@@ -319,11 +319,11 @@ export class AttachmentService {
       return;
     }
     if (pick.id === "current") {
-      await vscode.commands.executeCommand("ompTimer.attachCurrentFile");
+      await vscode.commands.executeCommand("ompChatExt.attachCurrentFile");
       return;
     }
     if (pick.id === "selection") {
-      await vscode.commands.executeCommand("ompTimer.sendSelection");
+      await vscode.commands.executeCommand("ompChatExt.sendSelection");
       return;
     }
     if (pick.id === "terminal") {

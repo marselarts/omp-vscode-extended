@@ -129,7 +129,7 @@ export class AskChat {
 
     try {
       const transcript = await this.sessions.getMessagesForTab(tabId);
-      const cfg = vscode.workspace.getConfiguration("ompTimer");
+      const cfg = vscode.workspace.getConfiguration("ompChatExt");
       const model = cfg.get<string>("askModel", "").trim() || cfg.get<string>("model", "").trim();
       const handle = await askInSideSession(
         {

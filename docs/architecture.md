@@ -4,7 +4,7 @@
 
 ```
 VS Code extension host (Node)
-  extension.ts                 activate(), commands ompTimer.*, open-tab persistence
+  extension.ts                 activate(), commands ompChatExt.*, open-tab persistence
   └─ ChatViewProvider          webview lifecycle, HTML shell, message switchboard, pickers/menus
        └─ TabManager           tabs: id -> SessionManager, titles, active tab, restore state
             └─ SessionManager  transcript + status + attachments + queue + turn clock
@@ -32,12 +32,12 @@ applies deltas for `status`, `messages`, `tabs`, `config`, `contextUsage`.
 `src/extension.ts:46` `activate()`:
 
 1. `initErrorLog`, `setTitleExtensionRoot`, `terminalCapture.start()`.
-2. `TabManager(workspaceCwd, openSessionsStore)` — `workspaceState` keys `ompTimer.openSessions`
-   and legacy `ompTimer.lastSessionId` (migrated on first write).
+2. `TabManager(workspaceCwd, openSessionsStore)` — `workspaceState` keys `ompChatExt.openSessions`
+   and legacy `ompChatExt.lastSessionId` (migrated on first write).
 3. `ChatViewProvider(extensionUri, sessions, globalStorageUri)` registered for view type
-   `ompTimer.sidebar`, `retainContextWhenHidden: true`.
-4. Commands registered under `ompTimer.*`; contributed in `package.json` `contributes.commands`
-   with titles `OMP Timer: …`, so nothing collides with `oh-my-pi-chat`.
+   `ompChatExt.sidebar`, `retainContextWhenHidden: true`.
+4. Commands registered under `ompChatExt.*`; contributed in `package.json` `contributes.commands`
+   with titles `OMP Chat Extended: …`, so nothing collides with `oh-my-pi-chat`.
 
 ## Tab lifecycle
 
@@ -93,7 +93,7 @@ ask runs in its own throwaway process.
 
 | Step | Where |
 |---|---|
-| Open / close / stop | `ChatViewProvider` ← `openAsk`, `closeAsk`, `stopAsk`; view-title `ompTimer.askAboutSession`, `/ask` |
+| Open / close / stop | `ChatViewProvider` ← `openAsk`, `closeAsk`, `stopAsk`; view-title `ompChatExt.askAboutSession`, `/ask` |
 | State owner | `AskChat` (`AskChatState` → webview `ask` message); `open`/`sessionId`/`busy`/`messages` |
 | Transcript | `TabManager.getMessagesForTab(tabId)` → `transcriptForAsk` (tail-clipped, streaming thinking skipped) |
 | Model call | `askInSideSession` (`src/omp/sideChat.ts`): `omp --mode rpc --no-session --no-tools --no-extensions`, prompt sent **after `ready`**, text deltas collected until `agent_end` |

@@ -10,7 +10,7 @@ import { showToolFileLog } from "../omp/toolFileLog";
 import type { ChatMessage, FileSuggestItem, HostToWebview, WebviewToHost } from "../omp/types";
 
 export class ChatViewProvider implements vscode.WebviewViewProvider {
-  public static readonly viewType = "ompTimer.sidebar";
+  public static readonly viewType = "ompChatExt.sidebar";
 
   private view?: vscode.WebviewView;
   private readonly disposables: vscode.Disposable[] = [];
@@ -34,7 +34,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     );
     this.displayName = this.resolveDisplayName();
     this.mode =
-      vscode.workspace.getConfiguration("ompTimer").get<string>("mode", "Agent") || "Agent";
+      vscode.workspace.getConfiguration("ompChatExt").get<string>("mode", "Agent") || "Agent";
 
     // First update of a new turn only refreshes the ask dialog header: title sync and
     // new session ids arrive over the following events. Resetting on any later one
@@ -59,22 +59,22 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
     this.disposables.push(
       vscode.workspace.onDidChangeConfiguration((e) => {
-        if (e.affectsConfiguration("ompTimer.autoTitle")) {
+        if (e.affectsConfiguration("ompChatExt.autoTitle")) {
           void this.onAutoTitleSettingChanged();
         }
         if (
-          e.affectsConfiguration("ompTimer.showThinking") ||
-          e.affectsConfiguration("ompTimer.model") ||
-          e.affectsConfiguration("ompTimer.mode")
+          e.affectsConfiguration("ompChatExt.showThinking") ||
+          e.affectsConfiguration("ompChatExt.model") ||
+          e.affectsConfiguration("ompChatExt.mode")
         ) {
-          if (e.affectsConfiguration("ompTimer.mode")) {
+          if (e.affectsConfiguration("ompChatExt.mode")) {
             this.mode =
-              vscode.workspace.getConfiguration("ompTimer").get<string>("mode", "Agent") || "Agent";
+              vscode.workspace.getConfiguration("ompChatExt").get<string>("mode", "Agent") || "Agent";
           }
           this.post({
             type: "config",
             showThinking: vscode.workspace
-              .getConfiguration("ompTimer")
+              .getConfiguration("ompChatExt")
               .get<boolean>("showThinking", true),
             model: this.currentModelLabel(),
             mode: this.mode,
@@ -138,25 +138,25 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
   async attachFiles(): Promise<void> {
     await this.attachments.attachFiles();
-    await vscode.commands.executeCommand("ompTimer.sidebar.focus");
+    await vscode.commands.executeCommand("ompChatExt.sidebar.focus");
     this.postState();
   }
 
   async attachFolder(): Promise<void> {
     await this.attachments.attachFolder();
-    await vscode.commands.executeCommand("ompTimer.sidebar.focus");
+    await vscode.commands.executeCommand("ompChatExt.sidebar.focus");
     this.postState();
   }
 
   async attachPaths(paths: string[]): Promise<void> {
     await this.attachments.attachPaths(paths);
-    await vscode.commands.executeCommand("ompTimer.sidebar.focus");
+    await vscode.commands.executeCommand("ompChatExt.sidebar.focus");
     this.postState();
   }
 
   async showAttachMenu(): Promise<void> {
     await this.attachments.showAttachMenu();
-    await vscode.commands.executeCommand("ompTimer.sidebar.focus");
+    await vscode.commands.executeCommand("ompChatExt.sidebar.focus");
     this.postState();
   }
 
@@ -165,7 +165,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     if (!attached) {
       return;
     }
-    await vscode.commands.executeCommand("ompTimer.sidebar.focus");
+    await vscode.commands.executeCommand("ompChatExt.sidebar.focus");
     this.postState();
   }
 
@@ -418,7 +418,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
   }
 
   private resolveDisplayName(): string {
-    const fromConfig = vscode.workspace.getConfiguration("ompTimer").get<string>("displayName", "");
+    const fromConfig = vscode.workspace.getConfiguration("ompChatExt").get<string>("displayName", "");
     if (fromConfig && fromConfig.trim()) {
       return fromConfig.trim();
     }
@@ -432,7 +432,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 
   private postState(): void {
     const showThinking = vscode.workspace
-      .getConfiguration("ompTimer")
+      .getConfiguration("ompChatExt")
       .get<boolean>("showThinking", true);
     this.post({
       type: "ready",
@@ -472,7 +472,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; font-src ${webview.cspSource}; img-src ${webview.cspSource} data: blob:;" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="${styleUri}" />
-  <title>OMP Chat Timer</title>
+  <title>OMP Chat Extended</title>
 </head>
 <body>
   <div id="app">
@@ -638,7 +638,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
   }
 
   private async pickModelAndApply(): Promise<void> {
-    const cfg = vscode.workspace.getConfiguration("ompTimer");
+    const cfg = vscode.workspace.getConfiguration("ompChatExt");
     const ompPath = cfg.get<string>("ompPath", "omp") || "omp";
     const current = cfg.get<string>("model", "") || "";
     const selected = await pickModel(ompPath, current);
@@ -663,7 +663,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     }
     this.mode = selected;
     await vscode.workspace
-      .getConfiguration("ompTimer")
+      .getConfiguration("ompChatExt")
       .update("mode", selected, vscode.ConfigurationTarget.Workspace);
     this.post({
       type: "config",
@@ -818,7 +818,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
   }
 
   private async onAutoTitleSettingChanged(): Promise<void> {
-    const enabled = vscode.workspace.getConfiguration("ompTimer").get<boolean>("autoTitle", true);
+    const enabled = vscode.workspace.getConfiguration("ompChatExt").get<boolean>("autoTitle", true);
     const choice = await vscode.window.showInformationMessage(
       enabled
         ? "Auto-title is on. Restart open chats so new sessions load the title extension?"
@@ -933,9 +933,9 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     } else if (picked.label === "Restart session") {
       await this.restart();
     } else if (picked.label === "Attach current file") {
-      await vscode.commands.executeCommand("ompTimer.attachCurrentFile");
+      await vscode.commands.executeCommand("ompChatExt.attachCurrentFile");
     } else if (picked.label === "Attach selection") {
-      await vscode.commands.executeCommand("ompTimer.sendSelection");
+      await vscode.commands.executeCommand("ompChatExt.sendSelection");
     } else if (picked.label === "Attach terminal output") {
       await this.attachTerminal();
     }

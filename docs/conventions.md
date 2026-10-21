@@ -6,8 +6,8 @@
 - Types live in `src/omp/types.ts`. A function that returns a value with a shape consumers depend on
   exports a **named** type there; never publish `ReturnType<typeof fn>` or
   `Awaited<ReturnType<…>>` as a contract (e.g. `TimerHandle`, `ChatMessage[]`, `OmpHistorySession`).
-- Extension-side identifiers are `ompTimer.*`: command ids, setting keys, `getConfiguration("ompTimer")`,
-  view type `ompTimer.sidebar`, storage keys `ompTimer.openSessions` / `ompTimer.lastSessionId`.
+- Extension-side identifiers are `ompChatExt.*`: command ids, setting keys, `getConfiguration("ompChatExt")`,
+  view type `ompChatExt.sidebar`, storage keys `ompChatExt.openSessions` / `ompChatExt.lastSessionId`.
   Adding `ompChat.*` anywhere is a bug — that namespace belongs to `oh-my-pi-chat`.
 
 ## Host code
@@ -36,7 +36,7 @@ npm install
 npm run compile   # tsc --noEmit
 npm run build     # esbuild -> dist/extension.js
 npm run lint      # biome check .
-npm run package   # vsce package -> omp-chat-timer-<version>.vsix
+npm run package   # vsce package -> omp-chat-extended-<version>.vsix
 ```
 
 `npm run lint` on this fork still reports inherited findings from upstream

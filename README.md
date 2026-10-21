@@ -1,10 +1,10 @@
-# Oh My Pi Chat
+# OMP Chat Extended
 
 A VS Code extension that gives [Oh My Pi (`omp`)](https://omp.sh/) a **Copilot / Cursor-style chat sidebar**.
 
 It launches a local `omp --mode rpc` session and streams replies, thinking, and tool activity into a modern webview chat UI.
 
-Fork of [Chakyiu/omp-vscode](https://github.com/Chakyiu/omp-vscode) with **agent runtime timing**. It installs as a separate extension (`chakyiuli.omp-chat-timer`) next to `chakyiuli.oh-my-pi-chat`: different extension id, command ids (`ompTimer.*`) and settings namespace, so both can be installed and used side by side.
+Fork of [Chakyiu/omp-vscode](https://github.com/Chakyiu/omp-vscode) with **agent runtime timing**. It installs as a separate extension (`marselarts.omp-chat-extended`) next to `chakyiuli.oh-my-pi-chat`: different extension id, command ids (`ompChatExt.*`) and settings namespace, so both can be installed and used side by side.
 
 ## Features
 
@@ -21,7 +21,7 @@ Fork of [Chakyiu/omp-vscode](https://github.com/Chakyiu/omp-vscode) with **agent
   - Timing comes from the extension host (`turn_start`/`prompt` → `agent_end`), so it survives webview reloads and tab switches
 
 - Multi-tab chats (each tab is its own `omp` session)
-- Agent-generated session titles on tabs (tiny/smol title model; disable with `ompTimer.autoTitle`)
+- Agent-generated session titles on tabs (tiny/smol title model; disable with `ompChatExt.autoTitle`)
 - Right-click a chat tab to rename / view / export / copy the full session as plain text
 - Restores all open omp chat tabs/sessions after VS Code restarts or force-quits
 - History button lists all past omp sessions for the workspace and can resume any of them
@@ -73,17 +73,17 @@ Then press **F5** (`Run Extension`) to open an Extension Development Host.
 
 | Setting | Meaning |
 |---|---|
-| `ompTimer.ompPath` | Path to `omp` (default: `omp`) |
-| `ompTimer.model` | Model override (fuzzy match) |
-| `ompTimer.thinking` | Thinking level |
-| `ompTimer.approvalMode` | `always-ask` / `write` / `yolo` |
-| `ompTimer.autoApprove` | Pass `--auto-approve` |
-| `ompTimer.continueLastSession` | Restore all open omp chat tabs/sessions on start (default on; survives VS Code kills) |
-| `ompTimer.autoTitle` | Let omp generate a short session title after the first message (default on; restart chats when toggling) |
-| `ompTimer.askModel` | Model for the parallel **Ask about this session** chat (fuzzy match; empty = `ompTimer.model` / omp default) |
-| `ompTimer.extraArgs` | Extra CLI args |
-| `ompTimer.showThinking` | Show/hide thinking blocks in UI |
-| `ompTimer.logFileTouches` | Log edit/write/delete touched paths to **OMP File Touches** output channel |
+| `ompChatExt.ompPath` | Path to `omp` (default: `omp`) |
+| `ompChatExt.model` | Model override (fuzzy match) |
+| `ompChatExt.thinking` | Thinking level |
+| `ompChatExt.approvalMode` | `always-ask` / `write` / `yolo` |
+| `ompChatExt.autoApprove` | Pass `--auto-approve` |
+| `ompChatExt.continueLastSession` | Restore all open omp chat tabs/sessions on start (default on; survives VS Code kills) |
+| `ompChatExt.autoTitle` | Let omp generate a short session title after the first message (default on; restart chats when toggling) |
+| `ompChatExt.askModel` | Model for the parallel **Ask about this session** chat (fuzzy match; empty = `ompChatExt.model` / omp default) |
+| `ompChatExt.extraArgs` | Extra CLI args |
+| `ompChatExt.showThinking` | Show/hide thinking blocks in UI |
+| `ompChatExt.logFileTouches` | Log edit/write/delete touched paths to **OMP File Touches** output channel |
 
 Quick error log: Command Palette → **OMP: Show Error Log** (also in the chat ⋯ menu). Entries persist across reloads and auto-clear after 7 days.
 
@@ -128,7 +128,7 @@ npm run package
 This produces a `.vsix` you can install with:
 
 ```bash
-code --install-extension omp-chat-timer-0.1.0.vsix
+code --install-extension omp-chat-extended-0.1.0.vsix
 ```
 
 It coexists with `oh-my-pi-chat`; nothing of the original extension is overwritten.

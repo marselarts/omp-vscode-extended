@@ -1,6 +1,6 @@
 # Docs index
 
-Orientation notes for working on **OMP Chat Timer** (`chakyiuli.omp-chat-timer`).
+Orientation notes for working on **OMP Chat Extended** (`marselarts.omp-chat-extended`).
 Read the file that matches your task; the map below is the starting point, not a substitute.
 
 | File | Use when |
@@ -26,4 +26,4 @@ Rule of thumb: **timing and truth live in the host**; the webview renders and on
 - Session looks stuck busy → `markTurnComplete` / `abort` path in `sessionManager.ts`, then `agent_end` handling in `handleEvent`.
 - Clock shows nothing → `turnStartedAt` must be set by `dispatchPrompt`; if the host restart dropped it, status arrives as `ready` with `lastTurnMs` only.
 - Webview shows stale transcript → `postState` vs. incremental `messages` pushes; `partsSignature` decides remount.
-- Two extensions fight in the command palette → command ids must stay `ompTimer.*` (never `ompChat.*`).
+- Two extensions fight in the command palette → command ids must stay `ompChatExt.*` (never `ompChat.*`).

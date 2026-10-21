@@ -12,8 +12,8 @@ function workspaceCwd(): string {
   return folder?.uri.fsPath ?? process.cwd();
 }
 
-const OPEN_SESSIONS_KEY = "ompTimer.openSessions";
-const LEGACY_LAST_SESSION_KEY = "ompTimer.lastSessionId";
+const OPEN_SESSIONS_KEY = "ompChatExt.openSessions";
+const LEGACY_LAST_SESSION_KEY = "ompChatExt.lastSessionId";
 
 function readOpenSessions(context: vscode.ExtensionContext): OpenSessionsState | undefined {
   const saved = context.workspaceState.get<OpenSessionsState>(OPEN_SESSIONS_KEY);
@@ -70,68 +70,68 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("ompTimer.open", async () => {
-      await vscode.commands.executeCommand("ompTimer.sidebar.focus");
+    vscode.commands.registerCommand("ompChatExt.open", async () => {
+      await vscode.commands.executeCommand("ompChatExt.sidebar.focus");
     }),
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("ompTimer.showToolLog", () => {
+    vscode.commands.registerCommand("ompChatExt.showToolLog", () => {
       showToolFileLog();
     }),
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("ompTimer.showErrorLog", () => {
+    vscode.commands.registerCommand("ompChatExt.showErrorLog", () => {
       showErrorLog();
     }),
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("ompTimer.askAboutSession", async () => {
+    vscode.commands.registerCommand("ompChatExt.askAboutSession", async () => {
       await provider.openAskChat();
     }),
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("ompTimer.newChat", async () => {
+    vscode.commands.registerCommand("ompChatExt.newChat", async () => {
       await provider.newChat();
     }),
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("ompTimer.stop", () => {
+    vscode.commands.registerCommand("ompChatExt.stop", () => {
       provider.stop();
     }),
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("ompTimer.restartSession", async () => {
+    vscode.commands.registerCommand("ompChatExt.restartSession", async () => {
       await provider.restart();
     }),
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("ompTimer.attachFiles", async () => {
+    vscode.commands.registerCommand("ompChatExt.attachFiles", async () => {
       await provider.attachFiles();
     }),
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("ompTimer.attachFolder", async () => {
+    vscode.commands.registerCommand("ompChatExt.attachFolder", async () => {
       await provider.attachFolder();
     }),
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("ompTimer.attachMenu", async () => {
+    vscode.commands.registerCommand("ompChatExt.attachMenu", async () => {
       await provider.showAttachMenu();
     }),
   );
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "ompTimer.attachExplorer",
+      "ompChatExt.attachExplorer",
       async (uri?: vscode.Uri, uris?: vscode.Uri[]) => {
         const selected = uris?.length ? uris : uri ? [uri] : [];
         if (!selected.length) {
@@ -144,13 +144,13 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("ompTimer.attachTerminal", async () => {
+    vscode.commands.registerCommand("ompChatExt.attachTerminal", async () => {
       await provider.attachTerminal();
     }),
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("ompTimer.sendSelection", async () => {
+    vscode.commands.registerCommand("ompChatExt.sendSelection", async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor || editor.selection.isEmpty) {
         vscode.window.showInformationMessage("Select some code first.");
@@ -166,13 +166,13 @@ export function activate(context: vscode.ExtensionContext): void {
         language,
         content: selection,
       });
-      await vscode.commands.executeCommand("ompTimer.sidebar.focus");
+      await vscode.commands.executeCommand("ompChatExt.sidebar.focus");
       provider.revealAttachments();
     }),
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("ompTimer.attachCurrentFile", async () => {
+    vscode.commands.registerCommand("ompChatExt.attachCurrentFile", async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
         vscode.window.showInformationMessage("Open a file first.");
@@ -197,7 +197,7 @@ export function activate(context: vscode.ExtensionContext): void {
           content: editor.document.getText(),
         });
       }
-      await vscode.commands.executeCommand("ompTimer.sidebar.focus");
+      await vscode.commands.executeCommand("ompChatExt.sidebar.focus");
       provider.revealAttachments();
     }),
   );
@@ -216,11 +216,11 @@ export function activate(context: vscode.ExtensionContext): void {
   });
 
   // Preload the model list once at startup so the picker opens instantly;
-  // `ompTimer.newChat`/session-ready refresh keeps it fresh. Reload if the
+  // `ompChatExt.newChat`/session-ready refresh keeps it fresh. Reload if the
   // omp binary path changes, since the cache is keyed on it.
   const preloadModels = () => {
     const ompPath =
-      vscode.workspace.getConfiguration("ompTimer").get<string>("ompPath", "omp") || "omp";
+      vscode.workspace.getConfiguration("ompChatExt").get<string>("ompPath", "omp") || "omp";
     void preloadOmpModels(ompPath).catch(() => {
       // Non-fatal: the picker falls back to a fresh fetch on miss.
     });
@@ -228,7 +228,7 @@ export function activate(context: vscode.ExtensionContext): void {
   preloadModels();
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration("ompTimer.ompPath")) {
+      if (e.affectsConfiguration("ompChatExt.ompPath")) {
         invalidateOmpModelCache();
         preloadModels();
       }

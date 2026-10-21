@@ -34,7 +34,7 @@ export function setTitleExtensionRoot(root: string | undefined): void {
 }
 
 function resolveTitleExtensionPath(): string | undefined {
-  const enabled = vscode.workspace.getConfiguration("ompTimer").get<boolean>("autoTitle", true);
+  const enabled = vscode.workspace.getConfiguration("ompChatExt").get<boolean>("autoTitle", true);
   if (!enabled) {
     return undefined;
   }
@@ -53,7 +53,7 @@ function resolveTitleExtensionPath(): string | undefined {
       return candidate;
     }
   }
-  logWarn("ompTimer.autoTitle is on but session-title.js was not found", {
+  logWarn("ompChatExt.autoTitle is on but session-title.js was not found", {
     root: titleExtensionRoot,
     candidates,
   });
@@ -230,7 +230,7 @@ export class SessionManager {
     if (this.sessionModel?.id) {
       return this.sessionModel.id;
     }
-    const cfgModel = vscode.workspace.getConfiguration("ompTimer").get<string>("model", "");
+    const cfgModel = vscode.workspace.getConfiguration("ompChatExt").get<string>("model", "");
     return cfgModel && cfgModel.trim() ? cfgModel.trim() : "Model";
   }
 
@@ -283,7 +283,7 @@ export class SessionManager {
   }
 
   private readConfig(overrides?: Partial<OmpClientOptions>): OmpClientOptions {
-    const cfg = vscode.workspace.getConfiguration("ompTimer");
+    const cfg = vscode.workspace.getConfiguration("ompChatExt");
     return {
       ompPath: cfg.get<string>("ompPath", "omp") || "omp",
       cwd: this.getWorkspaceCwd(),
@@ -307,7 +307,7 @@ export class SessionManager {
 
   private defaultStartOptions(): Partial<OmpClientOptions> {
     const continueEnabled = vscode.workspace
-      .getConfiguration("ompTimer")
+      .getConfiguration("ompChatExt")
       .get<boolean>("continueLastSession", true);
     if (!continueEnabled) {
       return { continueLastSession: false, resumeSessionId: undefined };
@@ -859,7 +859,7 @@ export class SessionManager {
     if (this.sessionTitle) {
       return;
     }
-    const enabled = vscode.workspace.getConfiguration("ompTimer").get<boolean>("autoTitle", true);
+    const enabled = vscode.workspace.getConfiguration("ompChatExt").get<boolean>("autoTitle", true);
     if (!enabled) {
       return;
     }
